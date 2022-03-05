@@ -128,7 +128,10 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# 
-monitorPlots
+# Data files
+monitorPlots/
 *.fits
 *.pdf
+
+# qsub output
+snolab_monitoring.o*
