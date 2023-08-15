@@ -20,7 +20,7 @@ import lmfit
 import trackMasking as tk
 
 nElectronMask = 20
-imageMask = {"U1":np.load("/home/apiers/snolab-monitor/mask/run0d/U1_mask_RUNID133-139.npy"), "L1":np.load("/home/apiers/snolab-monitor/mask/run0d/L1_mask_RUNID133-139.npy"), "U2":np.load("/home/apiers/snolab-monitor/mask/run0d/U2_mask_RUNID133-139.npy"), "L2":np.load("/home/apiers/snolab-monitor/mask/run0d/L2_mask_RUNID133-139.npy") }
+imageMask = {"U1":np.flip(np.load("/home/apiers/snolab-monitor/mask/run2b/U1_mask_RUNID133-139.npy")), "L1":np.load("/home/apiers/snolab-monitor/mask/run2b/L1_mask_RUNID_1a_53-61.npy"), "U2":np.flip(np.load("/home/apiers/snolab-monitor/mask/run2b/U2_mask_RUNID133-139.npy")), "L2":np.load("/home/apiers/snolab-monitor/mask/run2b/L2_mask_RUNID133-139.npy") }
 processDir = "/data/damic/snolab/upgrade/processed/science"
 
 def plotAllAmplifierPixelDist(filestructure, columnMask, gain=-1, bw=0.05):
@@ -28,11 +28,13 @@ def plotAllAmplifierPixelDist(filestructure, columnMask, gain=-1, bw=0.05):
 	fig, axs = plt.subplots(2, 2, figsize=(16, 10))
 	imageID = 0
 	axflat = axs.flatten()
-
+	print(filestructure)
 	# For each amplifier plot pixel distribution
 	for i, (key, images) in enumerate(filestructure.items()):
 
-		imageID = np.array(images)[:, 1].astype(int)
+		print(key)
+		print(images)
+		imageID = np.array(images)[:, 0].astype(int)
 
 		# Read all the images in the file struct object
 		allImages = np.array([])
@@ -94,7 +96,7 @@ def plotAllAmplifierColumnValues(filestructure, columnMask, gain=-1, bw=0.05):
 	# For each amplifier plot pixel distribution
 	for i, (key, images) in enumerate(filestructure.items()):
 
-		imageID = np.array(images)[:, 1].astype(int)
+		imageID = np.array(images)[:, 0].astype(int)
 
 		# Read all the images in the file struct object
 		allImages = np.array([])
@@ -147,7 +149,7 @@ def plotImageMetrics(filestructure, columnMask, bw=0.05):
 	# For each amplifier plot pixel distribution
 	for i, (key, images) in enumerate(filestructure.items()):
 
-		imageID = np.array(images)[:, 1].astype(int)
+		imageID = np.array(images)[:, 0].astype(int)
 
 		# Read all the images in the file struct object
 		allImages = np.array([])
@@ -215,7 +217,7 @@ def createJoinedFitsFile(filestructure, basefilename):
 
 	for i, (key, images) in enumerate(filestructure.items()):
 
-		imageIDs = np.array(images)[:, 1].astype(int)
+		imageIDs = np.array(images)[:, 0].astype(int)
 
 		imageIDRange = np.arange(np.min(imageIDs), np.max(imageIDs)+1)
 
@@ -226,7 +228,7 @@ def createJoinedFitsFile(filestructure, basefilename):
 		for imageID in imageIDRange:
 			idx = np.where(imageIDs == imageID)[0][0]
 
-			filename = images[idx][2]
+			filename = images[idx][-1]
 
 			hdu = astropy.io.fits.open(filename)
 			data = hdu[0].data
@@ -248,28 +250,38 @@ def createJoinedFitsFile(filestructure, basefilename):
 
 if __name__ == '__main__':
 	
-	filenameStruct = {"U1":[], "L1":[], "U2":[], "L2":[]}
+	filenameStruct = {"L1":[], "U1":[], "L2":[],"U2":[],}
 
-	avgImageFiles = glob.glob(os.path.join(processDir, "**/avg_*.fits"), recursive=True)
+	# # Get all the average fits file in the science data folder
+	# avgImageFiles = glob.glob(os.path.join(processDir, "**/avg_*.fits"), recursive=True)
 
-	# Filter by ones that were processed today, use these images for the shifter
-	avgImageFilesToday = [f for f in avgImageFiles if datetime.date.fromtimestamp(os.path.getctime(f)) == (datetime.date.today() - datetime.timedelta(days=1)) ]
+	# searchDate = datetime.date.today() - datetime.timedelta(0)
 
+	# # Filter by ones that were processed today, use these images for the shifter
+	# avgImageFilesToday = [f for f in avgImageFiles if datetime.date.fromtimestamp(os.path.getctime(f)) == searchDate]
 
+	# Simple list of files for testing 
+	filesToProcess = glob.glob(os.path.join("/data/damic/snolab/upgrade/processed/science/run2b/avg", "avg_skp_science_run2a_nrows210_ncols3300_nskips460_*fits"))
 	# Parse filenames into a more regular structure to be used by plotting functions
-	for file in avgImageFilesToday:
+	vImageID = []
+	for file in filesToProcess:
 
 		directory, filename = os.path.split(file)
 
 		# Get info from the filename
 		splitFilename = os.path.splitext(filename)[0].split("_")
 
-		runID, ccdNumber, imageID, amplifier = splitFilename[-4:]
+		ccdNumber, imageID, amplifier = splitFilename[-3:]
+		vImageID.append(int(imageID))
 
-		print("%s, %s, %s, %s"%(runID, ccdNumber, imageID, amplifier))
+		# print("%s, %s, %s, %s"%(runID, ccdNumber, imageID, amplifier))
 
-		filenameStruct[amplifier+ccdNumber].append( (runID, imageID, file))
+		filenameStruct[amplifier+ccdNumber].append( (imageID, file))
 
-	fig, axs = plotAllAmplifierPixelDist(filenameStruct, imageMask)
+	print(filenameStruct)
+
+	# fig, axs = plotAllAmplifierPixelDist(filenameStruct, imageMask)
+	fig, axs = plotImageMetrics(filenameStruct, imageMask)
+
 
 	plt.show()

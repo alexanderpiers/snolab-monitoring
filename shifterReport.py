@@ -26,10 +26,11 @@ import DamicImage
 
 from shifterPlots import *
 
-processDir = "/data/damic/snolab/upgrade/processed/science"
-filenameStruct = {"U1":[], "L1":[], "U2":[], "L2":[]}
+# Specific name of files to be processed. Need to update when changing science runs
+processDir = "/data/damic/snolab/upgrade/processed/science/run6b"
+filenameStruct = {"L1":[], "U1":[], "L2":[],"U2":[],}
 
-imageMask = {"U1":np.load("/home/apiers/snolab-monitor/mask/run0d/U1_mask_RUNID133-139.npy"), "L1":np.load("/home/apiers/snolab-monitor/mask/run0d/L1_mask_RUNID133-139.npy"), "U2":np.load("/home/apiers/snolab-monitor/mask/run0d/U2_mask_RUNID133-139.npy"), "L2":np.load("/home/apiers/snolab-monitor/mask/run0d/L2_mask_RUNID133-139.npy") }
+imageMask = {"U1":np.load("/home/apiers/snolab/mask/run5a_1U_course_mask.npy"), "L1":np.load("/home/apiers/snolab/mask/run5a_1L_course_mask.npy"), "U2":np.load("/home/apiers/snolab/mask/run5a_2U_course_mask.npy"), "L2":np.load("/home/apiers/snolab/mask/run5a_2L_course_mask.npy") }
 
 
 if __name__ == '__main__':
@@ -37,13 +38,12 @@ if __name__ == '__main__':
 	# Code to prepare plots for the DAMIC at SNOLAB shifters
 
 	# Get all the average fits file in the science data folder
-	avgImageFiles = glob.glob(os.path.join(processDir, "**/avg_*.fits"), recursive=True)
+	avgImageFiles = glob.glob(os.path.join(processDir, "avg/avg_*.fits"), recursive=True)
 
 	searchDate = datetime.date.today() - datetime.timedelta(0)
-
+	#searchDate = datetime.date(2023, 1, 13)
 	# Filter by ones that were processed today, use these images for the shifter
 	avgImageFilesToday = [f for f in avgImageFiles if datetime.date.fromtimestamp(os.path.getctime(f)) == searchDate]
-
 
 	# Parse filenames into a more regular structure to be used by plotting functions
 	vImageID = []
@@ -54,18 +54,17 @@ if __name__ == '__main__':
 		# Get info from the filename
 		splitFilename = os.path.splitext(filename)[0].split("_")
 
-		runID, ccdNumber, imageID, amplifier = splitFilename[-4:]
+		ccdNumber, imageID, amplifier = splitFilename[-3:]
 		vImageID.append(int(imageID))
 
 		# print("%s, %s, %s, %s"%(runID, ccdNumber, imageID, amplifier))
 
-		filenameStruct[amplifier+ccdNumber].append( (runID, imageID, file))
+		filenameStruct[amplifier+ccdNumber].append( (imageID, file))
 
 
 	# Get output directory to save files, make new dir if necessary
 	inputdir = os.path.dirname(avgImageFilesToday[0])
 	outputdir = (Path(inputdir).parents[0]).joinpath("monitor")
-
 	# Create the directory if it doesn't exist
 	if not outputdir.exists():
 		os.mkdir(outputdir, mode=0o770)

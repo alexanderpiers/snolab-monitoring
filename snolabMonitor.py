@@ -20,7 +20,7 @@ skoffset = 1
 ltaAmplifier = {"L":2, "U":4}
 bw = 0.05
 
-imageMask = {"U1":np.load("/home/apiers/snolab-monitor/mask/run0d/U1_mask_RUNID133-139.npy"), "L1":np.load("/home/apiers/snolab-monitor/mask/run0d/L1_mask_RUNID133-139.npy"), "U2":np.load("/home/apiers/snolab-monitor/mask/run0d/U2_mask_RUNID133-139.npy"), "L2":np.load("/home/apiers/snolab-monitor/mask/run0d/L2_mask_RUNID133-139.npy") }
+imageMask = {"U1":np.flip(np.load("/home/apiers/snolab-monitor/mask/run1a/U1_mask_RUNID133-139.npy")), "L1":np.load("/home/apiers/snolab-monitor/mask/run1a/L1_mask_RUNID_1a_53-61.npy"), "U2":np.flip(np.load("/home/apiers/snolab-monitor/mask/run1a/U2_mask_RUNID133-139.npy")), "L2":np.load("/home/apiers/snolab-monitor/mask/run1a/L2_mask_RUNID133-139.npy") }
 
 if __name__ == '__main__':
 	
@@ -64,7 +64,7 @@ if __name__ == '__main__':
 		# Parse runid, CCD number
 		filebase, ext = os.path.splitext(file)
 
-		runid = int(filebase.split("_")[-4])
+		runid = int(filebase.split("_")[-2])
 		ccdNumber = int(filebase.split("_")[-3])
 		ltaRunID = int(filebase.split("_")[-2])
 		amplifier = filebase.split("_")[-1]
